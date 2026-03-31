@@ -54,7 +54,7 @@ function applyCustomSizes(games) {
 // Load custom sizes from server
 async function loadCustomSizes() {
   try {
-    const sizes = await fetchJson('/api/customSizes');
+    const sizes = await fetchJson('api/customSizes');
     customSizes = new Map(Object.entries(sizes));
   } catch (e) {
     console.warn('Failed to load custom sizes:', e);
@@ -63,7 +63,7 @@ async function loadCustomSizes() {
 
 async function saveCustomSize(appid, sizeMb) {
   try {
-    await fetchJson('/api/customSizes', {
+    await fetchJson('api/customSizes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ appid: String(appid), sizeMb })
@@ -77,7 +77,7 @@ async function saveCustomSize(appid, sizeMb) {
 async function init() {
   await loadCustomSizes();
 
-  const me = await fetchJson('/api/me');
+  const me = await fetchJson('api/me');
 
   if (me.authenticated) {
     authMessage.textContent = `Logged in as ${me.user.displayName}`;
@@ -121,7 +121,7 @@ async function loadLibrary(steamId) {
     listbox.innerHTML = '';
     checkAll.checked = false;
 
-    const url = steamId ? `/api/library?steamId=${encodeURIComponent(steamId)}` : '/api/library';
+    const url = steamId ? `api/library?steamId=${encodeURIComponent(steamId)}` : 'api/library';
     const payload = await fetchJson(url);
 
     if (!payload || !Array.isArray(payload.games)) {
@@ -324,7 +324,7 @@ unknownFilterRadios.forEach((radio) => {
 });
 
 logoutBtn.addEventListener('click', async () => {
-  await fetchJson('/api/logout', { method: 'POST' });
+  await fetchJson('api/logout', { method: 'POST' });
   window.location.reload();
 });
 
