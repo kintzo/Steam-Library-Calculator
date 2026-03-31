@@ -13,7 +13,7 @@ services:
     restart: unless-stopped
 
   nginx:
-    image: nginx:stable-alpine
+    image: docker.io/nginx:stable-alpine
     container_name: steam-library-nginx
     ports:
       - "80:80"
