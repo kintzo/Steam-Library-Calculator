@@ -15,14 +15,68 @@ const summarySize = document.getElementById('summarySize');
 const summaryMeta = document.getElementById('summaryMeta');
 const reloadBtn = document.getElementById('reloadBtn');
 const searchInput = document.getElementById('searchInput');
+const unknownFilterRadios = document.querySelectorAll('input[name="unknownFilter"]');
 
 let games = [];
 let filteredGames = [];
 let selectedIds = new Set();
 let isGuest = false;
 let guestSteamId = null;
+let customSizes = new Map();
+
+function formatSizeMb(sizeMb) {
+  if (sizeMb === null || sizeMb === undefined) {
+    return 'Unknown';
+  }
+
+  if (sizeMb >= 1024 * 1024) {
+    return `${(sizeMb / (1024 * 1024)).toFixed(2)} TB`;
+  }
+
+  if (sizeMb >= 1024) {
+    return `${(sizeMb / 1024).toFixed(2)} GB`;
+  }
+
+  return `${Math.round(sizeMb)} MB`;
+}
+
+function applyCustomSizes(games) {
+  for (const game of games) {
+    const customMb = customSizes.get(String(game.appid));
+    if (customMb !== undefined) {
+      game.sizeMb = customMb;
+      game.sizeLabel = formatSizeMb(customMb);
+      game.sizeSource = 'user_provided';
+    }
+  }
+}
+
+// Load custom sizes from server
+async function loadCustomSizes() {
+  try {
+    const sizes = await fetchJson('/api/customSizes');
+    customSizes = new Map(Object.entries(sizes));
+  } catch (e) {
+    console.warn('Failed to load custom sizes:', e);
+  }
+}
+
+async function saveCustomSize(appid, sizeMb) {
+  try {
+    await fetchJson('/api/customSizes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appid: String(appid), sizeMb })
+    });
+    customSizes.set(String(appid), sizeMb);
+  } catch (e) {
+    console.warn('Failed to save custom size:', e);
+  }
+}
 
 async function init() {
+  await loadCustomSizes();
+
   const me = await fetchJson('/api/me');
 
   if (me.authenticated) {
@@ -62,34 +116,54 @@ async function init() {
 }
 
 async function loadLibrary(steamId) {
-  statusEl.textContent = 'Loading your Steam library and estimating disk size...';
-  listbox.innerHTML = '';
-  checkAll.checked = false;
+  try {
+    statusEl.textContent = 'Loading your Steam library and estimating disk size...';
+    listbox.innerHTML = '';
+    checkAll.checked = false;
 
-  const url = steamId ? `/api/library?steamId=${encodeURIComponent(steamId)}` : '/api/library';
-  const payload = await fetchJson(url);
-  games = payload.games || [];
-  filteredGames = games;
-  selectedIds = new Set();
+    const url = steamId ? `/api/library?steamId=${encodeURIComponent(steamId)}` : '/api/library';
+    const payload = await fetchJson(url);
 
-  renderList();
-  updateSummary();
+    if (!payload || !Array.isArray(payload.games)) {
+      throw new Error('Invalid library response from server');
+    }
 
-  const unknownCount = games.filter((game) => game.sizeMb === null).length;
-  const statusText = steamId
-    ? `Loaded ${games.length} games for Steam ID ${steamId} (from Steam Web API owned games and played free games). ${unknownCount} games have unknown size.
+    games = payload.games || [];
+    filteredGames = games;
+    selectedIds = new Set();
+
+    applyCustomSizes(games);
+
+    renderList();
+    updateSummary();
+
+    const unknownCount = games.filter((game) => game.sizeMb === null).length;
+    const statusText = steamId
+      ? `Loaded ${games.length} games for Steam ID ${steamId} (from Steam Web API owned games and played free games). ${unknownCount} games have unknown size.
   Note: shared family library items and unplayed free-to-play items are not returned by this endpoint.`
-    : `Loaded ${games.length} games (from Steam Web API owned games and played free games). ${unknownCount} games have unknown size.
+      : `Loaded ${games.length} games (from Steam Web API owned games and played free games). ${unknownCount} games have unknown size.
   Note: shared family library items and unplayed free-to-play items are not returned by this endpoint.`;
-  statusEl.textContent = statusText;
+
+    statusEl.textContent = statusText;
+  } catch (err) {
+    const message = err?.message || 'Unknown error';
+    console.error('loadLibrary error', err);
+    statusEl.textContent = `Failed to load library: ${message}`;
+    throw err;
+  }
 }
 
 function renderList() {
   const query = searchInput.value.trim().toLowerCase();
 
-  filteredGames = query
-    ? games.filter((g) => g.name.toLowerCase().includes(query))
-    : games;
+  const mode = [...unknownFilterRadios].find((r) => r.checked)?.value || 'all';
+
+  filteredGames = games.filter((g) => {
+    if (query && !g.name.toLowerCase().includes(query)) return false;
+    if (mode === 'hide' && g.sizeMb === null) return false;
+    if (mode === 'only' && g.sizeMb !== null) return false;
+    return true;
+  });
 
   if (filteredGames.length === 0) {
     listbox.innerHTML = '<p class="status">No games match your filter.</p>';
@@ -102,12 +176,13 @@ function renderList() {
     .map((game) => {
       const checked = selectedIds.has(game.appid) ? 'checked' : '';
       const thumbHtml = game.thumbnailUrl ? `<img src="${game.thumbnailUrl}" alt="${escapeHtml(game.name)}" class="game-thumb" />` : '';
+      const sizeClass = game.sizeMb === null ? 'game-size game-size-unknown' : 'game-size';
       return `
         <label class="game-row" data-appid="${game.appid}">
           <input type="checkbox" class="game-check" ${checked} />
           <div class="game-thumb-container">${thumbHtml}</div>
           <span class="game-name" title="${escapeHtml(game.name)}">${escapeHtml(game.name)}</span>
-          <span class="game-size">${game.sizeLabel}</span>
+          <span class="${sizeClass}" data-appid="${game.appid}">${game.sizeLabel}</span>
         </label>
       `;
     })
@@ -188,28 +263,29 @@ async function fetchJson(url, options) {
   return response.json();
 }
 
-listbox.addEventListener('change', (event) => {
+listbox.addEventListener('click', async (event) => {
   const target = event.target;
-
-  if (!(target instanceof HTMLInputElement) || !target.classList.contains('game-check')) {
-    return;
+  if (target.classList.contains('game-size-unknown')) {
+    const appid = Number(target.dataset.appid);
+    const game = games.find(g => g.appid === appid);
+    if (game) {
+      const input = prompt(`Enter size for "${game.name}" in GB (e.g., 5.2):`);
+      if (input !== null) {
+        const gb = parseFloat(input.trim());
+        if (!isNaN(gb) && gb >= 0) {
+          const mb = Math.round(gb * 1024);
+          await saveCustomSize(appid, mb);
+          game.sizeMb = mb;
+          game.sizeLabel = formatSizeMb(mb);
+          game.sizeSource = 'user_provided';
+          renderList();
+          updateSummary();
+        } else {
+          alert('Invalid input. Please enter a number in GB.');
+        }
+      }
+    }
   }
-
-  const row = target.closest('.game-row');
-  const appid = Number(row?.dataset.appid);
-
-  if (!appid) {
-    return;
-  }
-
-  if (target.checked) {
-    selectedIds.add(appid);
-  } else {
-    selectedIds.delete(appid);
-  }
-
-  updateCheckAllState();
-  updateSummary();
 });
 
 checkAll.addEventListener('change', () => {
@@ -237,6 +313,14 @@ reloadBtn.addEventListener('click', async () => {
 
 searchInput.addEventListener('input', () => {
   renderList();
+});
+
+unknownFilterRadios.forEach((radio) => {
+  radio.addEventListener('change', () => {
+    renderList();
+    updateCheckAllState();
+    updateSummary();
+  });
 });
 
 logoutBtn.addEventListener('click', async () => {
@@ -268,8 +352,10 @@ loadByIdBtn.addEventListener('click', async () => {
     libraryCard.classList.remove('hidden');
     summaryCard.classList.remove('hidden');
   } catch (err) {
-    console.error(err);
-    alert('Failed to load library. Check the Steam ID and try again.');
+    console.error('Failed to load library for guest ID:', err);
+    const detail = err?.message ? ` (${err.message})` : '';
+    alert(`Failed to load library. Check the Steam ID and try again.${detail}`);
+    statusEl.textContent = `Library load failed${detail}`;
   }
 });
 

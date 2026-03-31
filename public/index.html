@@ -51,6 +51,12 @@
             <input id="checkAll" type="checkbox" />
             <span>Check all visible games</span>
           </label>
+          <fieldset class="radio-group">
+            <legend>Unknown-size games:</legend>
+            <label><input name="unknownFilter" type="radio" value="all" checked /> Show all</label>
+            <label><input name="unknownFilter" type="radio" value="hide" /> Hide unknown</label>
+            <label><input name="unknownFilter" type="radio" value="only" /> Only unknown</label>
+          </fieldset>
           <button id="clearSelectionBtn" class="btn btn-ghost" type="button">Clear selection</button>
         </div>
 

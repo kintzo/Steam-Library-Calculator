@@ -242,6 +242,16 @@ body {
   font-size: 0.9rem;
 }
 
+.game-size-unknown {
+  cursor: pointer;
+  text-decoration: underline;
+  color: var(--muted);
+}
+
+.game-size-unknown:hover {
+  color: var(--accent);
+}
+
 .summary h2 {
   margin: 0;
   font-size: 1rem;

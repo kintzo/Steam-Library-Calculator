@@ -4,6 +4,7 @@ const session = require('express-session');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const dotenv = require('dotenv');
+const fs = require('fs').promises;
 const {
   getOwnedGames,
   enrichGamesWithEstimatedSize
@@ -32,6 +33,19 @@ async function resolveSteamId(input, apiKey) {
   }
 
   return steamId;
+}
+
+async function loadCustomSizes() {
+  try {
+    const data = await fs.readFile(path.join(__dirname, 'customSizes.json'), 'utf8');
+    return JSON.parse(data);
+  } catch (e) {
+    return {};
+  }
+}
+
+async function saveCustomSizes(sizes) {
+  await fs.writeFile(path.join(__dirname, 'customSizes.json'), JSON.stringify(sizes, null, 2));
 }
 
 dotenv.config();
@@ -158,6 +172,30 @@ app.get('/api/library', async (req, res) => {
   } catch (error) {
     console.error('Failed to load library:', error);
     return res.status(500).json({ error: 'Failed to load Steam library' });
+  }
+});
+
+app.get('/api/customSizes', async (req, res) => {
+  try {
+    const sizes = await loadCustomSizes();
+    res.json(sizes);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to load custom sizes' });
+  }
+});
+
+app.post('/api/customSizes', express.json(), async (req, res) => {
+  try {
+    const { appid, sizeMb } = req.body;
+    if (!appid || typeof sizeMb !== 'number') {
+      return res.status(400).json({ error: 'Invalid data' });
+    }
+    const sizes = await loadCustomSizes();
+    sizes[appid] = sizeMb;
+    await saveCustomSizes(sizes);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to save custom size' });
   }
 });
 

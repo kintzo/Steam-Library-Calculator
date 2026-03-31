@@ -10,10 +10,14 @@ A Node.js web app that authenticates with Steam, loads your game library, and es
 - `Check all visible` and `clear selection`
 - Live sum of selected game disk requirements
 - Search/filter over the game list
+- Hide games with unknown size
+- Community-contributed size data for unknown games
 
 ## Important Accuracy Note
 
 Steam Web API does not provide an exact installed size per game. This app estimates size from each game's Steam Store `pc_requirements` text (minimum/recommended storage). Some games may show `Unknown` or values that differ from real installed size.
+
+For games with unknown size, users can contribute community size data by clicking the "Unknown" text and entering the size in GB. This data is shared across all users.
 
 ## Library count behavior
 
