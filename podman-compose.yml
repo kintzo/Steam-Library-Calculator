@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  steam-library-calculator:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: steam-library-calculator:latest
+    container_name: steam-library-calculator
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped

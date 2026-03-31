@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Steam Library Size Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Archivo+Black&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="bg-shape bg-shape-1"></div>
+    <div class="bg-shape bg-shape-2"></div>
+
+    <main class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">Steam Web API</p>
+        <h1>Steam Library Disk Size Calculator</h1>
+        <p class="subtitle">
+          Sign in with Steam, select games from your library, and estimate how much space they need.
+        </p>
+      </header>
+
+      <section id="authCard" class="card auth-card">
+        <p id="authMessage">Checking Steam login...</p>
+        <a id="steamLoginBtn" class="btn btn-primary hidden" href="/auth/steam">Sign in with Steam</a>
+        <button id="logoutBtn" class="btn btn-ghost hidden" type="button">Logout</button>
+      </section>
+
+      <section id="libraryCard" class="card hidden">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <label for="searchInput">Search</label>
+            <input id="searchInput" type="text" placeholder="Filter games..." />
+          </div>
+          <button id="reloadBtn" class="btn btn-secondary" type="button">Reload Library</button>
+        </div>
+
+        <div class="controls">
+          <label class="checkbox-row">
+            <input id="checkAll" type="checkbox" />
+            <span>Check all visible games</span>
+          </label>
+          <button id="clearSelectionBtn" class="btn btn-ghost" type="button">Clear selection</button>
+        </div>
+
+        <div id="status" class="status">Loading library...</div>
+
+        <div id="listbox" class="listbox" role="listbox" aria-label="Steam games"></div>
+      </section>
+
+      <section id="summaryCard" class="card summary hidden">
+        <h2>Selected Total</h2>
+        <p id="summarySize" class="big-value">0 GB</p>
+        <p id="summaryMeta">0 games selected</p>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

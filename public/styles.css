@@ -1,0 +1,249 @@
+:root {
+  --bg-a: #0e2233;
+  --bg-b: #152f47;
+  --accent: #ffb703;
+  --accent-2: #fb8500;
+  --text: #f7f8fa;
+  --muted: #bed1e3;
+  --card: rgba(9, 19, 29, 0.78);
+  --line: rgba(255, 255, 255, 0.16);
+  --ok: #8ecae6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  background: radial-gradient(circle at 10% 10%, #244c76 0%, transparent 45%),
+    radial-gradient(circle at 85% 30%, #ad3f1f 0%, transparent 48%),
+    linear-gradient(130deg, var(--bg-a), var(--bg-b));
+  overflow-x: hidden;
+}
+
+.bg-shape {
+  position: fixed;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  filter: blur(50px);
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+.bg-shape-1 {
+  top: -60px;
+  left: -80px;
+  background: var(--accent);
+}
+
+.bg-shape-2 {
+  right: -70px;
+  bottom: 50px;
+  background: #55d6be;
+}
+
+.app-shell {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+  display: grid;
+  gap: 1rem;
+  animation: rise-in 550ms ease;
+}
+
+.hero h1 {
+  margin: 0.2rem 0;
+  font-family: 'Archivo Black', sans-serif;
+  line-height: 1.08;
+  letter-spacing: 0.4px;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  font-size: 0.8rem;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+}
+
+.auth-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.56rem 1rem;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 150ms ease, filter 150ms ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.07);
+}
+
+.btn-primary {
+  background: linear-gradient(95deg, var(--accent), var(--accent-2));
+  color: #1a1300;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.btn-secondary {
+  background: #8ecae6;
+  color: #112333;
+  font-weight: 700;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.toolbar {
+  display: flex;
+  gap: 0.8rem;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  flex: 1;
+  min-width: 220px;
+}
+
+.search-wrap label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.search-wrap input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+}
+
+.controls {
+  margin: 0.8rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status {
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+.listbox {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  max-height: 440px;
+  overflow: auto;
+  padding: 0.35rem;
+  background: rgba(8, 15, 24, 0.5);
+}
+
+.game-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.46rem 0.5rem;
+  border-radius: 10px;
+}
+
+.game-row:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.game-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-size {
+  color: var(--ok);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.summary h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.big-value {
+  margin: 0.2rem 0;
+  font-size: clamp(1.6rem, 5vw, 2.6rem);
+  font-family: 'Archivo Black', sans-serif;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .listbox {
+    max-height: 56vh;
+  }
+}
