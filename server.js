@@ -10,6 +10,43 @@ const {
   enrichGamesWithEstimatedSize
 } = require('./src/services/steamService');
 
+async function getPlayerSummary(steamId, apiKey) {
+  const url = new URL('https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/');
+  url.searchParams.set('key', apiKey);
+  url.searchParams.set('steamids', steamId);
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Failed to load Steam profile summary');
+  }
+
+  const data = await response.json();
+  const player = data?.response?.players?.[0];
+
+  return {
+    steamId,
+    displayName: player?.personaname || `Steam User ${steamId}`,
+    avatar: player?.avatarfull || player?.avatarmedium || player?.avatar || null
+  };
+}
+
+async function loadLibraryPayload({ steamId, apiKey }) {
+  const [games, owner] = await Promise.all([
+    getOwnedGames({ steamId, apiKey }),
+    getPlayerSummary(steamId, apiKey).catch(() => ({
+      steamId,
+      displayName: `Steam User ${steamId}`,
+      avatar: null
+    }))
+  ]);
+  const enriched = await enrichGamesWithEstimatedSize(games);
+
+  return {
+    owner,
+    games: enriched
+  };
+}
+
 async function resolveSteamId(input, apiKey) {
   // If it's numeric, assume it's Steam ID
   if (/^\d+$/.test(input)) {
@@ -84,7 +121,7 @@ app.use(passport.session());
 passport.use(
   new SteamStrategy(
     {
-      returnURL: `${BASE_URL}/auth/steam/return`,
+      returnURL: `${BASE_URL}${APP_PATH === '/' ? '' : APP_PATH}/auth/steam/return`,
       realm: BASE_URL,
       apiKey: STEAM_API_KEY
     },
@@ -106,11 +143,15 @@ function requireAuth(req, res, next) {
   return res.status(401).json({ error: 'Not authenticated' });
 }
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(APP_PATH, express.static(path.join(__dirname, 'public')));
 
-app.get('/auth/steam', passport.authenticate('steam', { failureRedirect: APP_PATH }));
+// Main router for auth and API routes
+const mainRouter = express.Router();
 
-app.get(
+// Auth routes
+mainRouter.get('/auth/steam', passport.authenticate('steam', { failureRedirect: APP_PATH }));
+
+mainRouter.get(
   '/auth/steam/return',
   passport.authenticate('steam', { failureRedirect: APP_PATH }),
   (req, res) => {
@@ -118,7 +159,8 @@ app.get(
   }
 );
 
-app.post('/api/logout', (req, res) => {
+// API routes
+mainRouter.post('/api/logout', (req, res) => {
   req.logout((err) => {
     if (err) {
       return res.status(500).json({ error: 'Logout failed' });
@@ -130,7 +172,7 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
-app.get('/api/me', (req, res) => {
+mainRouter.get('/api/me', (req, res) => {
   if (!req.isAuthenticated || !req.isAuthenticated()) {
     return res.json({ authenticated: false });
   }
@@ -147,28 +189,40 @@ app.get('/api/me', (req, res) => {
   });
 });
 
-app.get('/api/library', async (req, res) => {
+mainRouter.get('/api/library', async (req, res) => {
   try {
     let steamId;
+    let requestedAs = null;
+    let owner;
 
     if (req.query.steamId) {
-      // Guest mode
+      requestedAs = String(req.query.steamId);
       steamId = await resolveSteamId(req.query.steamId, STEAM_API_KEY);
     } else {
-      // Authenticated mode
       if (!req.isAuthenticated || !req.isAuthenticated()) {
         return res.status(401).json({ error: 'Not authenticated' });
       }
       steamId = req.user.id || req.user._json?.steamid;
+      owner = {
+        steamId,
+        displayName: req.user.displayName || 'Steam User',
+        avatar: req.user.photos?.[2]?.value || req.user.photos?.[0]?.value || null
+      };
     }
 
-    const games = await getOwnedGames({ steamId, apiKey: STEAM_API_KEY });
-    const enriched = await enrichGamesWithEstimatedSize(games);
+    const payload = await loadLibraryPayload({ steamId, apiKey: STEAM_API_KEY });
+
+    if (!owner) {
+      owner = payload.owner;
+    }
 
     return res.json({
       generatedAt: new Date().toISOString(),
-      totalGames: enriched.length,
-      games: enriched
+      requestedAs,
+      steamId,
+      owner,
+      totalGames: payload.games.length,
+      games: payload.games
     });
   } catch (error) {
     console.error('Failed to load library:', error);
@@ -176,7 +230,7 @@ app.get('/api/library', async (req, res) => {
   }
 });
 
-app.get('/api/customSizes', async (req, res) => {
+mainRouter.get('/api/customSizes', async (req, res) => {
   try {
     const sizes = await loadCustomSizes();
     res.json(sizes);
@@ -185,7 +239,7 @@ app.get('/api/customSizes', async (req, res) => {
   }
 });
 
-app.post('/api/customSizes', express.json(), async (req, res) => {
+mainRouter.post('/api/customSizes', express.json(), async (req, res) => {
   try {
     const { appid, sizeMb } = req.body;
     if (!appid || typeof sizeMb !== 'number') {
@@ -199,6 +253,8 @@ app.post('/api/customSizes', express.json(), async (req, res) => {
     res.status(500).json({ error: 'Failed to save custom size' });
   }
 });
+
+app.use(APP_PATH, mainRouter);
 
 app.listen(PORT, () => {
   console.log(`Steam Library Calculator running at ${BASE_URL}`);

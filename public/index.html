@@ -22,7 +22,7 @@
         <p class="eyebrow">Steam Web API</p>
         <h1>Steam Library Disk Size Calculator</h1>
         <p class="subtitle">
-          Sign in with Steam, select games from your library, and estimate how much space they need.
+          Sign in with Steam, add friend libraries, and compare unique versus stacked disk totals.
         </p>
       </header>
 
@@ -39,6 +39,20 @@
       </section>
 
       <section id="libraryCard" class="card hidden">
+        <div class="compare-panel">
+          <div class="loaded-users-wrap">
+            <p class="panel-label">Loaded libraries</p>
+            <div id="loadedUsers" class="loaded-users"></div>
+          </div>
+          <form id="comparisonForm" class="comparison-form">
+            <label for="comparisonInput">Add a friend by Steam ID or vanity URL</label>
+            <div class="comparison-row">
+              <input id="comparisonInput" type="text" placeholder="Add friend library" />
+              <button id="addComparisonBtn" class="btn btn-secondary" type="submit">Add library</button>
+            </div>
+          </form>
+        </div>
+
         <div class="toolbar">
           <div class="search-wrap">
             <label for="searchInput">Search</label>
@@ -47,29 +61,59 @@
           <button id="reloadBtn" class="btn btn-secondary" type="button">Reload Library</button>
         </div>
 
+        <div id="status" class="status">Loading library...</div>
+
+
         <div class="controls">
-          <label class="checkbox-row">
-            <input id="checkAll" type="checkbox" />
-            <span>Check all visible games</span>
-          </label>
+          
           <fieldset class="radio-group">
             <legend>Unknown-size games:</legend>
             <label><input name="unknownFilter" type="radio" value="all" checked /> Show all</label>
             <label><input name="unknownFilter" type="radio" value="hide" /> Hide unknown</label>
             <label><input name="unknownFilter" type="radio" value="only" /> Only unknown</label>
           </fieldset>
+          <fieldset class="radio-group">
+            <legend>Ownership:</legend>
+            <label><input name="ownershipFilter" type="radio" value="all" checked /> All titles</label>
+            <label><input name="ownershipFilter" type="radio" value="shared" /> Shared titles</label>
+            <label><input name="ownershipFilter" type="radio" value="exclusive" /> Exclusive titles</label>
+          </fieldset>
+
+          <fieldset id="sharedPlayersFieldset" class="checkbox-group invisible">
+            <legend>Shared between:</legend>
+            <div id="sharedPlayersContainer"></div>
+          </fieldset>
+        </div>
+        <div class="controls">
+          <label class="checkbox-row">
+            <input id="checkAll" type="checkbox" />
+            <span>Check all visible games</span>
+          </label>
           <button id="clearSelectionBtn" class="btn btn-ghost" type="button">Clear selection</button>
         </div>
 
-        <div id="status" class="status">Loading library...</div>
-
+        
         <div id="listbox" class="listbox" role="listbox" aria-label="Steam games"></div>
       </section>
 
       <section id="summaryCard" class="card summary hidden">
-        <h2>Selected Total</h2>
+        <h2>Selection Summary</h2>
         <p id="summarySize" class="big-value">0 GB</p>
-        <p id="summaryMeta">0 games selected</p>
+        <p id="summaryMeta">0 titles selected</p>
+        <div class="summary-grid">
+          <div class="summary-stat">
+            <span class="summary-label">Stacked total</span>
+            <strong id="summaryStackedSize">0 GB</strong>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-label">Shared titles</span>
+            <strong id="summarySharedCount">0</strong>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-label">Loaded libraries</span>
+            <strong id="summaryLibraryCount">0</strong>
+          </div>
+        </div>
       </section>
     </main>
 

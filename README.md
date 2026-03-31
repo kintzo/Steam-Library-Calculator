@@ -2,15 +2,19 @@
 
 A Node.js web app that authenticates with Steam, loads your game library, and estimates total required disk size based on Steam Store requirements.
 
+You can also add friend libraries by Steam ID or vanity URL to compare overlap and total storage requirements across multiple accounts.
+
 ## Features
 
 - Steam sign-in using OpenID (`passport-steam`)
 - Loads your owned games from Steam Web API
 - Displays your full library in a checkbox list
+- Compare multiple Steam libraries at once
 - `Check all visible` and `clear selection`
-- Live sum of selected game disk requirements
+- Unique versus stacked total size across friends
 - Search/filter over the game list
 - Hide games with unknown size
+- Filter down to shared or exclusive titles
 - Community-contributed size data for unknown games
 
 ## Important Accuracy Note

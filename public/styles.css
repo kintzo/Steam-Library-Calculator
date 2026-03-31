@@ -121,6 +121,12 @@ body {
   font-weight: 700;
 }
 
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
 .steam-id-form {
   margin-left: 1rem;
   padding-left: 1rem;
@@ -142,6 +148,100 @@ body {
   background: rgba(8, 15, 24, 0.5);
   color: var(--text);
   font-size: 1rem;
+}
+
+.compare-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.9fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panel-label {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.loaded-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+}
+
+.user-pill img,
+.user-pill-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.user-pill-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.user-pill-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.user-pill-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.user-pill-subtitle {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.user-pill-remove {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.comparison-form label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.comparison-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+}
+
+.comparison-row input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  padding: 0.55rem 0.75rem;
+  font: inherit;
 }
 
 .toolbar {
@@ -205,7 +305,7 @@ body {
 
 .game-row {
   display: grid;
-  grid-template-columns: 28px 40px 1fr auto;
+  grid-template-columns: 28px 40px minmax(0, 1fr) minmax(140px, 0.8fr) auto;
   gap: 0.7rem;
   align-items: center;
   padding: 0.46rem 0.5rem;
@@ -236,6 +336,22 @@ body {
   text-overflow: ellipsis;
 }
 
+.game-owners {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.owner-badge {
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(142, 202, 230, 0.12);
+  color: var(--ok);
+  border: 1px solid rgba(142, 202, 230, 0.28);
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
 .game-size {
   color: var(--ok);
   font-weight: 700;
@@ -264,8 +380,61 @@ body {
   font-family: 'Archivo Black', sans-serif;
 }
 
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.summary-stat {
+  padding: 0.85rem;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.summary-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-bottom: 0.25rem;
+}
+
+.radio-group,
+.checkbox-group {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.radio-group legend,
+.checkbox-group legend {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+  padding: 0;
+}
+
+.radio-group label,
+.checkbox-group label {
+  display: block;
+  margin-bottom: 0.35rem;
+  cursor: pointer;
+}
+
+.radio-group input,
+.checkbox-group input {
+  margin-right: 0.4rem;
+  cursor: pointer;
+}
+
 .hidden {
   display: none !important;
+}
+
+.invisible {
+  visibility: hidden;
 }
 
 @keyframes rise-in {
@@ -282,6 +451,22 @@ body {
 @media (max-width: 640px) {
   .app-shell {
     padding: 1rem 0.75rem 2rem;
+  }
+
+  .compare-panel,
+  .summary-grid,
+  .comparison-row {
+    grid-template-columns: 1fr;
+  }
+
+  .game-row {
+    grid-template-columns: 28px 40px minmax(0, 1fr);
+  }
+
+  .game-owners,
+  .game-size {
+    grid-column: 2 / -1;
+    margin-left: 0.1rem;
   }
 
   .listbox {
