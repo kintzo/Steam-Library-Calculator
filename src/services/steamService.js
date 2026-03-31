@@ -1,4 +1,43 @@
-const SIZE_CACHE = new Map();
+const fs = require('fs');
+const fsPromises = require('fs').promises;
+const path = require('path');
+
+const CACHE_FILE_PATH = path.join(__dirname, '../../appdetailsCache.json');
+
+function loadAppdetailsCache() {
+  try {
+    if (!fs.existsSync(CACHE_FILE_PATH)) {
+      return {};
+    }
+
+    const content = fs.readFileSync(CACHE_FILE_PATH, 'utf8');
+    const parsed = JSON.parse(content || '{}');
+
+    if (typeof parsed !== 'object' || parsed === null) {
+      console.warn('Invalid appdetails cache format, resetting.');
+      return {};
+    }
+
+    return parsed;
+  } catch (error) {
+    console.warn('Unable to load appdetails cache:', error);
+    return {};
+  }
+}
+
+async function saveAppdetailsCache(map) {
+  try {
+    const obj = {};
+    for (const [key, value] of map.entries()) {
+      obj[key] = value;
+    }
+    await fsPromises.writeFile(CACHE_FILE_PATH, JSON.stringify(obj, null, 2), 'utf8');
+  } catch (error) {
+    console.warn('Unable to write appdetails cache:', error);
+  }
+}
+
+const SIZE_CACHE = new Map(Object.entries(loadAppdetailsCache()).map(([key, value]) => [Number(key), value]));
 
 async function getOwnedGames({ steamId, apiKey }) {
   const url = new URL('https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/');
@@ -32,7 +71,7 @@ async function enrichGamesWithEstimatedSize(games, concurrency = 8) {
   return runWithConcurrency(games, concurrency, async (game) => {
     const cached = SIZE_CACHE.get(game.appid);
 
-    if (cached) {
+    if (cached && cached.sizeMb !== null) {
       return {
         ...game,
         sizeMb: cached.sizeMb,
@@ -43,7 +82,10 @@ async function enrichGamesWithEstimatedSize(games, concurrency = 8) {
     }
 
     const sizeInfo = await fetchEstimatedSize(game.appid);
-    SIZE_CACHE.set(game.appid, sizeInfo);
+    if (sizeInfo.sizeMb !== null) {
+      SIZE_CACHE.set(game.appid, sizeInfo);
+      await saveAppdetailsCache(SIZE_CACHE);
+    }
 
     return {
       ...game,
