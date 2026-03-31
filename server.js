@@ -143,15 +143,12 @@ function requireAuth(req, res, next) {
   return res.status(401).json({ error: 'Not authenticated' });
 }
 
-app.use(APP_PATH, express.static(path.join(__dirname, 'public')));
-
-// Main router for auth and API routes
-const mainRouter = express.Router();
+app.use("/", express.static(path.join(__dirname, 'public')));
 
 // Auth routes
-mainRouter.get('/auth/steam', passport.authenticate('steam', { failureRedirect: APP_PATH }));
+app.get('/auth/steam', passport.authenticate('steam', { failureRedirect: APP_PATH }));
 
-mainRouter.get(
+app.get(
   '/auth/steam/return',
   passport.authenticate('steam', { failureRedirect: APP_PATH }),
   (req, res) => {
@@ -160,7 +157,7 @@ mainRouter.get(
 );
 
 // API routes
-mainRouter.post('/api/logout', (req, res) => {
+app.post('/api/logout', (req, res) => {
   req.logout((err) => {
     if (err) {
       return res.status(500).json({ error: 'Logout failed' });
@@ -172,7 +169,7 @@ mainRouter.post('/api/logout', (req, res) => {
   });
 });
 
-mainRouter.get('/api/me', (req, res) => {
+app.get('/api/me', (req, res) => {
   if (!req.isAuthenticated || !req.isAuthenticated()) {
     return res.json({ authenticated: false });
   }
@@ -189,7 +186,7 @@ mainRouter.get('/api/me', (req, res) => {
   });
 });
 
-mainRouter.get('/api/library', async (req, res) => {
+app.get('/api/library', async (req, res) => {
   try {
     let steamId;
     let requestedAs = null;
@@ -230,7 +227,7 @@ mainRouter.get('/api/library', async (req, res) => {
   }
 });
 
-mainRouter.get('/api/customSizes', async (req, res) => {
+app.get('/api/customSizes', async (req, res) => {
   try {
     const sizes = await loadCustomSizes();
     res.json(sizes);
@@ -239,7 +236,7 @@ mainRouter.get('/api/customSizes', async (req, res) => {
   }
 });
 
-mainRouter.post('/api/customSizes', express.json(), async (req, res) => {
+app.post('/api/customSizes', express.json(), async (req, res) => {
   try {
     const { appid, sizeMb } = req.body;
     if (!appid || typeof sizeMb !== 'number') {
@@ -253,8 +250,6 @@ mainRouter.post('/api/customSizes', express.json(), async (req, res) => {
     res.status(500).json({ error: 'Failed to save custom size' });
   }
 });
-
-app.use(APP_PATH, mainRouter);
 
 app.listen(PORT, () => {
   console.log(`Steam Library Calculator running at ${BASE_URL}`);
