@@ -15,6 +15,13 @@ A Node.js web app that authenticates with Steam, loads your game library, and es
 
 Steam Web API does not provide an exact installed size per game. This app estimates size from each game's Steam Store `pc_requirements` text (minimum/recommended storage). Some games may show `Unknown` or values that differ from real installed size.
 
+## Library count behavior
+
+- The app uses `IPlayerService/GetOwnedGames` from Steam Web API.
+- It currently includes owned games and free-to-play games you have played (with `include_played_free_games=true`).
+- It does not include games from family shared libraries, and it may not include unplayed free-to-play titles.
+- So your Steam client count (e.g., "My games" + "Steam family") may be higher than the app's count.
+
 ## Prerequisites
 
 - Node.js 18+

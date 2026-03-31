@@ -7,7 +7,11 @@ async function getOwnedGames({ steamId, apiKey }) {
   url.searchParams.set('include_appinfo', 'true');
   url.searchParams.set('include_played_free_games', 'true');
 
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Steam Library Calculator/1.0'
+    }
+  });
 
   if (!response.ok) {
     throw new Error(`Steam API error: ${response.status}`);
@@ -33,7 +37,8 @@ async function enrichGamesWithEstimatedSize(games, concurrency = 8) {
         ...game,
         sizeMb: cached.sizeMb,
         sizeLabel: formatSizeMb(cached.sizeMb),
-        sizeSource: cached.sizeSource
+        sizeSource: cached.sizeSource,
+        thumbnailUrl: cached.thumbnailUrl
       };
     }
 
@@ -44,7 +49,8 @@ async function enrichGamesWithEstimatedSize(games, concurrency = 8) {
       ...game,
       sizeMb: sizeInfo.sizeMb,
       sizeLabel: formatSizeMb(sizeInfo.sizeMb),
-      sizeSource: sizeInfo.sizeSource
+      sizeSource: sizeInfo.sizeSource,
+      thumbnailUrl: sizeInfo.thumbnailUrl
     };
   });
 }
@@ -55,29 +61,34 @@ async function fetchEstimatedSize(appid) {
   url.searchParams.set('l', 'english');
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Steam Library Calculator/1.0'
+      }
+    });
 
     if (!response.ok) {
-      return { sizeMb: null, sizeSource: 'unavailable' };
+      return { sizeMb: null, sizeSource: 'unavailable', thumbnailUrl: null };
     }
 
     const payload = await response.json();
     const entry = payload?.[appid];
 
     if (!entry || !entry.success || !entry.data) {
-      return { sizeMb: null, sizeSource: 'unavailable' };
+      return { sizeMb: null, sizeSource: 'unavailable', thumbnailUrl: null };
     }
 
     const requirements = entry.data.pc_requirements || {};
     const sizeMb = extractStorageMb(requirements.minimum, requirements.recommended);
+    const thumbnailUrl = entry.data.small_capsule_image || entry.data.header_image || null;
 
     if (sizeMb === null) {
-      return { sizeMb: null, sizeSource: 'not_listed' };
+      return { sizeMb: null, sizeSource: 'not_listed', thumbnailUrl };
     }
 
-    return { sizeMb, sizeSource: 'steam_store_requirements' };
+    return { sizeMb, sizeSource: 'steam_store_requirements', thumbnailUrl };
   } catch {
-    return { sizeMb: null, sizeSource: 'unavailable' };
+    return { sizeMb: null, sizeSource: 'unavailable', thumbnailUrl: null };
   }
 }
 

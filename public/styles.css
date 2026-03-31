@@ -121,10 +121,27 @@ body {
   font-weight: 700;
 }
 
-.btn-ghost {
-  background: transparent;
-  color: var(--text);
+.steam-id-form {
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--line);
+}
+
+.steam-id-form p {
+  margin: 0 0 0.5rem 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.steam-id-form input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
   border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(8, 15, 24, 0.5);
+  color: var(--text);
+  font-size: 1rem;
 }
 
 .toolbar {
@@ -188,7 +205,7 @@ body {
 
 .game-row {
   display: grid;
-  grid-template-columns: 28px 1fr auto;
+  grid-template-columns: 28px 40px 1fr auto;
   gap: 0.7rem;
   align-items: center;
   padding: 0.46rem 0.5rem;
@@ -197,6 +214,20 @@ body {
 
 .game-row:nth-child(odd) {
   background: rgba(255, 255, 255, 0.03);
+}
+
+.game-thumb-container {
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-thumb {
+  width: 40px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
 .game-name {

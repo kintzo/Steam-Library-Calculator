@@ -9,6 +9,31 @@ const {
   enrichGamesWithEstimatedSize
 } = require('./src/services/steamService');
 
+async function resolveSteamId(input, apiKey) {
+  // If it's numeric, assume it's Steam ID
+  if (/^\d+$/.test(input)) {
+    return input;
+  }
+
+  // Otherwise, resolve vanity URL
+  const url = new URL('https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/');
+  url.searchParams.set('key', apiKey);
+  url.searchParams.set('vanityurl', input);
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Failed to resolve vanity URL');
+  }
+
+  const data = await response.json();
+  const steamId = data?.response?.steamid;
+  if (!steamId) {
+    throw new Error('Invalid Steam ID or vanity URL');
+  }
+
+  return steamId;
+}
+
 dotenv.config();
 
 const app = express();
@@ -107,9 +132,20 @@ app.get('/api/me', (req, res) => {
   });
 });
 
-app.get('/api/library', requireAuth, async (req, res) => {
+app.get('/api/library', async (req, res) => {
   try {
-    const steamId = req.user.id || req.user._json?.steamid;
+    let steamId;
+
+    if (req.query.steamId) {
+      // Guest mode
+      steamId = await resolveSteamId(req.query.steamId, STEAM_API_KEY);
+    } else {
+      // Authenticated mode
+      if (!req.isAuthenticated || !req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Not authenticated' });
+      }
+      steamId = req.user.id || req.user._json?.steamid;
+    }
 
     const games = await getOwnedGames({ steamId, apiKey: STEAM_API_KEY });
     const enriched = await enrichGamesWithEstimatedSize(games);
