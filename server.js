@@ -90,7 +90,6 @@ dotenv.config();
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
-const APP_PATH = process.env.APP_PATH || '/';
 const SESSION_SECRET = process.env.SESSION_SECRET;
 const STEAM_API_KEY = process.env.STEAM_API_KEY;
 
@@ -146,13 +145,13 @@ function requireAuth(req, res, next) {
 app.use("/", express.static(path.join(__dirname, 'public')));
 
 // Auth routes
-app.get('/auth/steam', passport.authenticate('steam', { failureRedirect: APP_PATH }));
+app.get('/auth/steam', passport.authenticate('steam', { failureRedirect: BASE_URL }));
 
 app.get(
   '/auth/steam/return',
-  passport.authenticate('steam', { failureRedirect: APP_PATH }),
+  passport.authenticate('steam', { failureRedirect: BASE_URL }),
   (req, res) => {
-    res.redirect(APP_PATH);
+    res.redirect(BASE_URL);
   }
 );
 
